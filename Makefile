@@ -34,7 +34,7 @@ gofmt:
 
 
 binaries:
-	$(GO_BUILD) -o bin/podman-machine github.com/containers/podman-machine-cni/plugins/meta/forwarder
+	$(GO_BUILD) -o bin/podman-machine github.com/containers/podman-machine-cni/plugins/meta/podman-machine
 
 .PHONY: .gitvalidation
 .gitvalidation:
