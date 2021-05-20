@@ -9,8 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-
-	"github.com/sirupsen/logrus"
+	"os"
 )
 
 type Expose struct {
@@ -22,19 +21,15 @@ type Unexpose struct {
 	Local string `json:"local"`
 }
 
+// getPrimaryIP extracts the host's IP address from an environment
+// variable. It is an error if that IP is blank
 func getPrimaryIP() (net.IP, error) {
-	// no connection is actually made here
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return nil, err
+	hostIP := os.Getenv("PODMAN_MACHINE_HOST")
+	if len(hostIP) < 1 {
+		return nil, errors.New("invalid PODMAN_MACHINE_HOST environment variable")
 	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			logrus.Error(err)
-		}
-	}()
-	addr := conn.LocalAddr().(*net.UDPAddr)
-	return addr.IP, nil
+	addr := net.ParseIP(hostIP)
+	return addr, nil
 }
 
 func postRequest(ctx context.Context, url *url.URL, body interface{}) error {
