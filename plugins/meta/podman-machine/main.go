@@ -36,6 +36,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to parse config")
 	}
+
 	hostAddr, err := getPrimaryIP()
 	if err != nil {
 		return err
