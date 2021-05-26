@@ -36,14 +36,12 @@ func cmdAdd(args *skel.CmdArgs) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to parse config")
 	}
+
 	hostAddr, err := getPrimaryIP()
 	if err != nil {
 		return err
 	}
-	// No portmappings, do nothing
-	if len(portMaps.RuntimeConfig.PortMaps) < 1 {
-		return nil
-	}
+
 	// Iterate and send requests to the server
 	for _, pm := range portMaps.RuntimeConfig.PortMaps {
 		hostPort := strconv.Itoa(pm.HostPort)
