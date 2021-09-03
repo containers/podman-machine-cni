@@ -43,7 +43,8 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 	// No portmappings, do nothing
 	if len(portMaps.RuntimeConfig.PortMaps) < 1 {
-		return nil
+		// Have to do this for chained plugins, which this is
+		return types.PrintResult(portMaps.PrevResult, portMaps.CNIVersion)
 	}
 	// Iterate and send requests to the server
 	for _, pm := range portMaps.RuntimeConfig.PortMaps {
