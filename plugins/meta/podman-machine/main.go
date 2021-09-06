@@ -18,6 +18,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -28,14 +29,13 @@ import (
 	"github.com/containernetworking/cni/pkg/types"
 	"github.com/containernetworking/cni/pkg/version"
 	bv "github.com/containernetworking/plugins/pkg/utils/buildversion"
-	"github.com/pkg/errors"
 )
 
 func cmdAdd(args *skel.CmdArgs) error {
 	// Get the port information from the chained plugin
 	portMaps, err := parseConfig(args.StdinData, args.Args)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse config")
+		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	hostAddr, err := getPrimaryIP()
@@ -120,12 +120,12 @@ func cmdCheck(args *skel.CmdArgs) error {
 func parseConfig(stdin []byte, args string) (*PortMapConf, error) {
 	conf := PortMapConf{}
 	if err := json.Unmarshal(stdin, &conf); err != nil {
-		return nil, fmt.Errorf("failed to parse network configuration: %v", err)
+		return nil, fmt.Errorf("failed to parse network configuration: %w", err)
 	}
 	// Parse previous result.
 	if conf.RawPrevResult != nil {
 		if err := version.ParsePrevResult(&conf.NetConf); err != nil {
-			return nil, errors.Wrap(err, "could not parse prevResult")
+			return nil, fmt.Errorf("could not parse prevResult: %w", err)
 		}
 	}
 	return &conf, nil
