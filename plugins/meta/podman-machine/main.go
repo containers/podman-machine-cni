@@ -28,7 +28,6 @@ import (
 	"github.com/containernetworking/cni/pkg/skel"
 	"github.com/containernetworking/cni/pkg/types"
 	"github.com/containernetworking/cni/pkg/version"
-	bv "github.com/containernetworking/plugins/pkg/utils/buildversion"
 )
 
 func cmdAdd(args *skel.CmdArgs) error {
@@ -93,7 +92,7 @@ func cmdDel(args *skel.CmdArgs) error {
 }
 
 func main() {
-	skel.PluginMain(cmdAdd, cmdCheck, cmdDel, version.All, bv.BuildString("machine"))
+	skel.PluginMain(cmdAdd, cmdCheck, cmdDel, version.All, getVersion())
 }
 
 func cmdCheck(args *skel.CmdArgs) error {

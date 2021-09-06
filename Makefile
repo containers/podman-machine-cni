@@ -24,6 +24,11 @@ ifeq ($(GOBIN),)
 GOBIN := $(FIRST_GOPATH)/bin
 endif
 
+COMMIT_NO ?= $(shell git rev-parse HEAD 2> /dev/null || true)
+GIT_COMMIT ?= $(if $(shell git status --porcelain --untracked-files=no),${COMMIT_NO}-dirty,${COMMIT_NO})
+
+LDFLAGS_MACHINE ?= -X main.gitCommit=$(GIT_COMMIT)
+
 all: binaries
 
 validate: install.tools gofmt .gitvalidation lint
@@ -34,7 +39,7 @@ gofmt:
 
 
 binaries:
-	$(GO_BUILD) -o bin/podman-machine github.com/containers/podman-machine-cni/plugins/meta/podman-machine
+	$(GO_BUILD) -ldflags '$(LDFLAGS_MACHINE)' -o bin/podman-machine github.com/containers/podman-machine-cni/plugins/meta/podman-machine
 
 .PHONY: .gitvalidation
 .gitvalidation:
