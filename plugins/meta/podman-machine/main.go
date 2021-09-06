@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/containernetworking/cni/pkg/skel"
@@ -68,7 +69,8 @@ func cmdAdd(args *skel.CmdArgs) error {
 func cmdDel(args *skel.CmdArgs) error {
 	portMaps, err := parseConfig(args.StdinData, args.Args)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse config")
+		fmt.Fprintf(os.Stderr, "failed to parse config: %v", err)
+		return nil
 	}
 	// No portmappings, do nothing
 	if len(portMaps.RuntimeConfig.PortMaps) < 1 {
@@ -78,11 +80,13 @@ func cmdDel(args *skel.CmdArgs) error {
 		hostPort := strconv.Itoa(pm.HostPort)
 		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/unexpose", apiEndpoint, apiEndpointPort))
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "failed to parse url: %v", err)
+			return nil
 		}
 		unexpose := Unexpose{Local: fmt.Sprintf("0.0.0.0:%s", hostPort)}
 		if err := postRequest(context.Background(), u, unexpose); err != nil {
-			return err
+			fmt.Fprint(os.Stderr, err)
+			return nil
 		}
 	}
 	return nil
