@@ -18,23 +18,23 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/containernetworking/cni/pkg/skel"
 	"github.com/containernetworking/cni/pkg/types"
 	"github.com/containernetworking/cni/pkg/version"
-	bv "github.com/containernetworking/plugins/pkg/utils/buildversion"
-	"github.com/pkg/errors"
 )
 
 func cmdAdd(args *skel.CmdArgs) error {
 	// Get the port information from the chained plugin
 	portMaps, err := parseConfig(args.StdinData, args.Args)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse config")
+		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	hostAddr, err := getPrimaryIP()
@@ -69,7 +69,8 @@ func cmdAdd(args *skel.CmdArgs) error {
 func cmdDel(args *skel.CmdArgs) error {
 	portMaps, err := parseConfig(args.StdinData, args.Args)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse config")
+		fmt.Fprintf(os.Stderr, "failed to parse config: %v", err)
+		return nil
 	}
 	// No portmappings, do nothing
 	if len(portMaps.RuntimeConfig.PortMaps) < 1 {
@@ -79,18 +80,20 @@ func cmdDel(args *skel.CmdArgs) error {
 		hostPort := strconv.Itoa(pm.HostPort)
 		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/unexpose", apiEndpoint, apiEndpointPort))
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "failed to parse url: %v", err)
+			return nil
 		}
 		unexpose := Unexpose{Local: fmt.Sprintf("0.0.0.0:%s", hostPort)}
 		if err := postRequest(context.Background(), u, unexpose); err != nil {
-			return err
+			fmt.Fprint(os.Stderr, err)
+			return nil
 		}
 	}
 	return nil
 }
 
 func main() {
-	skel.PluginMain(cmdAdd, cmdCheck, cmdDel, version.All, bv.BuildString("machine"))
+	skel.PluginMain(cmdAdd, cmdCheck, cmdDel, version.All, getVersion())
 }
 
 func cmdCheck(args *skel.CmdArgs) error {
@@ -117,12 +120,12 @@ func cmdCheck(args *skel.CmdArgs) error {
 func parseConfig(stdin []byte, args string) (*PortMapConf, error) {
 	conf := PortMapConf{}
 	if err := json.Unmarshal(stdin, &conf); err != nil {
-		return nil, fmt.Errorf("failed to parse network configuration: %v", err)
+		return nil, fmt.Errorf("failed to parse network configuration: %w", err)
 	}
 	// Parse previous result.
 	if conf.RawPrevResult != nil {
 		if err := version.ParsePrevResult(&conf.NetConf); err != nil {
-			return nil, errors.Wrap(err, "could not parse prevResult")
+			return nil, fmt.Errorf("could not parse prevResult: %w", err)
 		}
 	}
 	return &conf, nil
