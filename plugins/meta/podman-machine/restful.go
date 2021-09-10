@@ -61,11 +61,15 @@ func postRequest(ctx context.Context, url *url.URL, body interface{}) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err == nil && len(b) > 0 {
-			return fmt.Errorf("something went wrong with the request: %q", string(b))
-		}
-		return errors.New("something went wrong with the request, could not read response")
+		return annotateResponseError(resp.Body)
 	}
 	return nil
+}
+
+func annotateResponseError(r io.Reader) error {
+	b, err := ioutil.ReadAll(r)
+	if err == nil && len(b) > 0 {
+		return fmt.Errorf("something went wrong with the request: %q", string(b))
+	}
+	return errors.New("something went wrong with the request, could not read response")
 }

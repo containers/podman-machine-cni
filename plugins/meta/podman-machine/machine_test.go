@@ -97,12 +97,11 @@ var _ = Describe("machine tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(r.Version()).To(Equal(ver))
 
-			// TODO fix cmdCheck
-			// err = testutils.CmdCheck(bogusNetns, args.ContainerID, IFNAME, fullConf, func() error {
-			// 	return cmdCheck(args)
-			// })
-			// Expect(err).NotTo(HaveOccurred())
-			// Expect(r.Version()).To(Equal(ver))
+			err = testutils.CmdCheck(bogusNetns, args.ContainerID, IFNAME, fullConf, func() error {
+				return cmdCheck(args)
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(r.Version()).To(Equal(ver))
 
 			err = testutils.CmdDel(bogusNetns, args.ContainerID, IFNAME, func() error {
 				return cmdDel(args)
@@ -161,12 +160,11 @@ var _ = Describe("machine tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(r.Version()).To(Equal(ver))
 
-			// TODO fix cmdCheck
-			// err = testutils.CmdCheck(bogusNetns, args.ContainerID, IFNAME, fullConf, func() error {
-			// 	return cmdCheck(args)
-			// })
-			// Expect(err).NotTo(HaveOccurred())
-			// Expect(r.Version()).To(Equal(ver))
+			err = testutils.CmdCheck(bogusNetns, args.ContainerID, IFNAME, fullConf, func() error {
+				return cmdCheck(args)
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(r.Version()).To(Equal(ver))
 
 			err = testutils.CmdDel(bogusNetns, args.ContainerID, IFNAME, func() error {
 				return cmdDel(args)
