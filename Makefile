@@ -11,6 +11,9 @@ FIRST_GOPATH := $(firstword $(subst :, ,$(GOPATH)))
 GOPKGDIR := $(FIRST_GOPATH)/src/$(PROJECT)
 GOPKGBASEDIR ?= $(shell dirname "$(GOPKGDIR)")
 
+# gvproxy is required for the test
+export GVPROXY_PATH ?= /usr/libexec/podman/gvproxy
+
 SELINUXOPT ?= $(shell test -x /usr/sbin/selinuxenabled && selinuxenabled && echo -Z)
 
 GO_BUILD=$(GO) build
@@ -55,6 +58,9 @@ define go-get
 	env GO111MODULE=off \
 		$(GO) get -u ${1}
 endef
+
+test:
+	$(GO) test -v ./...
 
 
 .install.gitvalidation:

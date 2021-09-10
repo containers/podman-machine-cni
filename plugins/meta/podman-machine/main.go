@@ -49,7 +49,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// Iterate and send requests to the server
 	for _, pm := range portMaps.RuntimeConfig.PortMaps {
 		hostPort := strconv.Itoa(pm.HostPort)
-		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/expose", apiEndpoint, apiEndpointPort))
+		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/expose", getAPIEndpoint(), apiEndpointPort))
 		if err != nil {
 			return err
 		}
@@ -78,7 +78,7 @@ func cmdDel(args *skel.CmdArgs) error {
 	}
 	for _, pm := range portMaps.RuntimeConfig.PortMaps {
 		hostPort := strconv.Itoa(pm.HostPort)
-		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/unexpose", apiEndpoint, apiEndpointPort))
+		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/unexpose", getAPIEndpoint(), apiEndpointPort))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to parse url: %v", err)
 			return nil
@@ -98,7 +98,7 @@ func main() {
 
 func cmdCheck(args *skel.CmdArgs) error {
 	client := &http.Client{}
-	u, err := url.Parse(fmt.Sprintf("http://%s:%s/status", apiEndpoint, apiEndpointPort))
+	u, err := url.Parse(fmt.Sprintf("http://%s:%s/status", getAPIEndpoint(), apiEndpointPort))
 	if err != nil {
 		return err
 	}
