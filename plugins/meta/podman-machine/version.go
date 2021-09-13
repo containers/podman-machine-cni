@@ -5,7 +5,7 @@ import "fmt"
 // overwritten at build time
 var gitCommit = "unknown"
 
-const machineVersion = "0.2.0"
+const machineVersion = "0.3.0-dev"
 
 func getVersion() string {
 	return fmt.Sprintf(`CNI podman-machine plugin
