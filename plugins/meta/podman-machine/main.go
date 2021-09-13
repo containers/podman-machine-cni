@@ -18,7 +18,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -49,7 +48,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// Iterate and send requests to the server
 	for _, pm := range portMaps.RuntimeConfig.PortMaps {
 		hostPort := strconv.Itoa(pm.HostPort)
-		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/expose", apiEndpoint, apiEndpointPort))
+		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/expose", getAPIEndpoint(), apiEndpointPort))
 		if err != nil {
 			return err
 		}
@@ -78,7 +77,7 @@ func cmdDel(args *skel.CmdArgs) error {
 	}
 	for _, pm := range portMaps.RuntimeConfig.PortMaps {
 		hostPort := strconv.Itoa(pm.HostPort)
-		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/unexpose", apiEndpoint, apiEndpointPort))
+		u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/unexpose", getAPIEndpoint(), apiEndpointPort))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to parse url: %v", err)
 			return nil
@@ -97,8 +96,13 @@ func main() {
 }
 
 func cmdCheck(args *skel.CmdArgs) error {
+	// Get the port information from the chained plugin
+	portMaps, err := parseConfig(args.StdinData, args.Args)
+	if err != nil {
+		return fmt.Errorf("failed to parse config: %w", err)
+	}
 	client := &http.Client{}
-	u, err := url.Parse(fmt.Sprintf("http://%s:%s/status", apiEndpoint, apiEndpointPort))
+	u, err := url.Parse(fmt.Sprintf("http://%s:%s/services/forwarder/all", getAPIEndpoint(), apiEndpointPort))
 	if err != nil {
 		return err
 	}
@@ -111,7 +115,23 @@ func cmdCheck(args *skel.CmdArgs) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("something went wrong with the request")
+		return annotateResponseError(resp.Body)
+	}
+	gvports := []Expose{}
+	err = json.NewDecoder(resp.Body).Decode(&gvports)
+	if err != nil {
+		return fmt.Errorf("failed to decode response: %w", err)
+	}
+outer:
+	for _, pm := range portMaps.RuntimeConfig.PortMaps {
+		hostPort := strconv.Itoa(pm.HostPort)
+		addr := "0.0.0.0:" + hostPort
+		for _, gvport := range gvports {
+			if gvport.Local == addr {
+				break outer
+			}
+		}
+		return fmt.Errorf("host addr:port %q not found in gvproxy ports", addr)
 	}
 	return nil
 }
