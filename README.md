@@ -1,3 +1,7 @@
+# Deprecated
+
+This repository is no longer maintained. The core logic has been merged into [podman as of v4.0](https://github.com/containers/podman/pull/12283).
+
 # podman-machine-cni
 
 This plugin collects the port information of the container and sends information to a server on the host
